@@ -14,4 +14,4 @@ python3 -m http.server 8000
 
 Then visit <http://localhost:8000>.
 
-To open the controls, click the cog in the top-left corner.
+Press **D** to show the controls. The cog then slides the panel in and out, and pressing D again hides everything. Your browser remembers the setting.

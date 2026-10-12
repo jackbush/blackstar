@@ -359,6 +359,7 @@
   const statusEl = document.getElementById('status');
   fpsEl = document.getElementById('fps');
   let panelOpen = false;
+  const UI_KEY = 'blackstar:ui';
   const rows = []; // { p, wrap, sync }
 
   function el(tag, cls, text) {
@@ -436,14 +437,19 @@
     resetBtn.hidden = n === 0;
   }
 
-  function setPanel(open) {
-    panelOpen = open;
-    panel.classList.toggle('open', open);
-    panel.setAttribute('aria-hidden', String(!open));
-    document.body.classList.toggle('panel-open', open); // canvas shrinks to the remaining area
-    cog.setAttribute('aria-expanded', String(open));
+  // UI mode: 'off' (nothing shown — the default for new visitors), 'closed' (cog only) or
+  // 'open' (cog + panel; the canvas shrinks to the remaining area). Remembered per browser.
+  function setUi(mode) {
+    panelOpen = mode === 'open';
+    document.body.dataset.ui = mode;
+    panel.setAttribute('aria-hidden', String(!panelOpen));
+    cog.setAttribute('aria-expanded', String(panelOpen));
+    try { localStorage.setItem(UI_KEY, mode); } catch (_) { /* ignore */ }
   }
-  cog.addEventListener('click', () => setPanel(!panelOpen));
+  cog.addEventListener('click', () => setUi(panelOpen ? 'closed' : 'open'));
+  let savedUi = 'off';
+  try { savedUi = localStorage.getItem(UI_KEY) || 'off'; } catch (_) { /* ignore */ }
+  setUi(savedUi === 'open' || savedUi === 'closed' ? savedUi : 'off');
 
   // ---- copy state
   function buildState() {
@@ -488,9 +494,9 @@
   window.addEventListener('keydown', (e) => {
     const t = e.target;
     const typing = t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type !== 'range' && t.type !== 'checkbox'));
-    if (e.key === 'Escape') { setPanel(false); return; }
+    if (e.key === 'Escape') { if (panelOpen) setUi('closed'); return; }
     if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === 'h' || e.key === 'H') document.body.classList.toggle('clean');
+    if (e.key === 'd' || e.key === 'D') setUi(document.body.dataset.ui === 'off' ? 'open' : 'off');
     else if (e.key === ' ') { e.preventDefault(); setValue(P_paused, !P_paused.value); syncAll(); onEdited(); }
   });
 

@@ -22,7 +22,7 @@
     }
     /* With the panel open, the animation fits the remaining area so its edges stay visible. */
     @media (min-width: 700px) {
-      body.panel-open #stage { left: var(--panel-w); width: calc(100% - var(--panel-w)); }
+      body[data-ui="open"] #stage { left: var(--panel-w); width: calc(100% - var(--panel-w)); }
     }
 
     #error {
@@ -44,8 +44,9 @@
       border-right: 1px solid var(--line); font: 11px/1.4 var(--mono);
       transform: translateX(-102%); transition: transform .28s cubic-bezier(.2, .7, .2, 1);
     }
-    #panel.open { transform: none; }
-    body.clean #cog, body.clean #panel { display: none; }
+    /* UI mode (press D): off = nothing shown, closed = cog only, open = cog + panel. */
+    body[data-ui="open"] #panel { transform: none; }
+    body[data-ui="off"] #cog, body[data-ui="off"] #panel { display: none; }
 
     .head { display: flex; align-items: center; gap: 12px; padding: 14px 16px 10px 62px; min-height: 62px; border-bottom: 1px solid var(--line); }
     .head h1 { margin: 0; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; font-weight: 600; }
@@ -99,7 +100,7 @@
     #copy:hover { background: #fff; }
   </style>
 </head>
-<body>
+<body data-ui="off">
   <canvas id="stage"></canvas>
   <div id="error" hidden></div>
 
