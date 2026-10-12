@@ -17,18 +17,19 @@ description: Add, edit, or remove visual elements and parameters in the Blacksta
 | `scripts/bench.mjs` | Real-GPU fps benchmark. | — |
 
 **Passes in `shader.js`:**
-1. `angular` (1024×1): values that depend only on the angle around the orb (edge shapes, halo hue). The composite pass reads them with `angular(dir)`, which returns `vec4(orbN, lagN, ownN, hueN)`.
+1. `angular` (1024×1): noise that depends only on the angle around the orb. The composite pass reads it as `A`, i.e. `vec4(ownN, hueN, free, free)` (the halo's own shape and its hue drift).
 2. `fields` (¼ resolution, two RGBA outputs): smooth, low-frequency noise, sampled in the composite pass as `F0` (warp, mottle, leak, rays) and `F1` (swirl, free, free, free). Put any new *smooth* noise here, in a free channel.
 3. `composite` (full resolution): cheap per-pixel work only, i.e. texture lookups, crisp edges, colour, hashes for grain and dust.
-- `perFrame(P, t, rt, w, h, px, f)` runs on the CPU once per frame. Anything identical for every pixel (centres, directions, flicker gain) is computed here and written into a preallocated `f_*` uniform declared in `frameUniforms`. It must not allocate.
+- **Orb outline:** a closed Catmull-Rom spline through `orbPoints` radii evenly spaced around a circle (point 0 at the top). Each point is a sine wave with its own phase and speed and a slowly jittering amplitude (`ringPoint()` on the CPU). `perFrame()` writes the offsets into `f_ring`: slots `[0, N)` are now and `[MAX_POINTS, MAX_POINTS+N)` are at `t − haloLag`, which the halo uses. In GLSL, `ringOffset(angle, 0 | MAX_POINTS)` returns the radius offset as a fraction of `f_orbR`.
+- `perFrame(P, t, rt, w, h, px, f)` runs on the CPU once per frame. Anything identical for every pixel (centres, directions, flicker gain) is computed here and written into a preallocated `f_*` uniform declared in `frameUniforms` (a count 1–4 gives float/vec2/vec3/vec4; `[n]` gives a float array). It must not allocate.
 
 **How a param reaches the GPU:** a param `{ key: 'fooBar', ... }` is automatically declared in every pass as `uniform float u_fooBar;`, or `vec3` for colours. **Never hand-declare a param uniform.** A param that is only read by `perFrame()` (`P.fooBar`) or by `app.js` (`byKey.fooBar`) must have `uniform: false`. Built-ins: `u_res` (the current pass's target size), `u_screen` (canvas size), `u_time` (scene time: scaled and pausable), `u_realTime` (wall clock, which drives the film layer).
 
-**Composite order:** background → light leaks (background only) → halo → orb → highlight burn → vignette → exposure & flicker → dust → grain. Put new layers where they'd physically sit. Scene content goes before the film layers, and grain always comes last.
+**Composite order:** background → halo → orb → light leaks → highlight burn → vignette → exposure & flicker → dust → grain. Put new layers where they'd physically sit. Scene content goes before the film layers, and grain always comes last.
 
 **Coordinates:** `q` is centred, aspect-correct, with screen height = 1 (so x spans ±aspect/2), +y up, and gate weave included. `fuv` is the matching 0–1 coordinate for sampling fields. `fc` is `gl_FragCoord` in canvas pixels; multiply pixel sizes by `f_px` (canvas px per CSS px) so they stay stable when adaptive quality changes resolution.
 
-**Shared GLSL helpers (`common`):** `snoise(vec3)` returns -1..1, `fbm3` is 3 octaves, `blobNoise` gives orb-style lobes, `hash(vec3)` returns 0..1 per integer cell, and `encode`/`decode` pack values for the passes. On the CPU there are `noise1(x)` and `hash2(a, b)`.
+**Shared GLSL helpers (`common`):** `snoise(vec3)` returns -1..1, `fbm3` is 3 octaves, `ringOffset` is the orb outline, `hash(vec3)` returns 0..1 per integer cell, and `encode`/`decode` pack values for the passes. On the CPU there are `noise1(x)` and `hash2(a, b)`.
 
 ## Adding a parameter
 

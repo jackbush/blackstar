@@ -100,10 +100,13 @@
   // Per-frame CPU values (f_*): one preallocated array each, plus a flat list for the upload loop.
   const frameVals = {};
   const frameList = [];
+  // Spec is a component count (1–4 → float/vec2/vec3/vec4) or [length] for a float array.
   for (const name in SHADER.frameUniforms) {
-    const n = SHADER.frameUniforms[name];
+    const spec = SHADER.frameUniforms[name];
+    const array = Array.isArray(spec);
+    const n = array ? spec[0] : spec;
     frameVals[name] = new Float32Array(n);
-    frameList.push({ name, n, arr: frameVals[name] });
+    frameList.push({ name, n, array, arr: frameVals[name] });
   }
 
   let vao = null, passAngular = null, passFields = null, passComposite = null;
@@ -130,7 +133,7 @@
     return '#version 300 es\nprecision highp float;\nprecision highp int;\n' +
       'uniform vec2 u_res;\nuniform vec2 u_screen;\nuniform float u_time;\nuniform float u_realTime;\n' +
       uniformParams.map((p) => 'uniform ' + (p.type === 'color' ? 'vec3' : 'float') + ' u_' + p.key + ';').join('\n') + '\n' +
-      frameList.map((f) => 'uniform ' + vecType[f.n] + ' ' + f.name + ';').join('\n') + '\n' +
+      frameList.map((f) => f.array ? 'uniform float ' + f.name + '[' + f.n + '];' : 'uniform ' + vecType[f.n] + ' ' + f.name + ';').join('\n') + '\n' +
       SHADER.common;
   }
   function buildPass(name, head) {
@@ -234,7 +237,7 @@
     }
     for (let i = 0; i < frameList.length; i++) {
       const f = frameList[i], loc = pass.frameLocs[i];
-      if (f.n === 1) gl.uniform1fv(loc, f.arr);
+      if (f.array || f.n === 1) gl.uniform1fv(loc, f.arr);
       else if (f.n === 2) gl.uniform2fv(loc, f.arr);
       else if (f.n === 3) gl.uniform3fv(loc, f.arr);
       else gl.uniform4fv(loc, f.arr);

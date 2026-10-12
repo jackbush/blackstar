@@ -15,7 +15,7 @@ vm.runInContext(fs.readFileSync(path.join(root, 'shader.js'), 'utf8'), ctx);
 const schema = ctx.window.BLACKSTAR_PARAMS;
 const S = ctx.window.BLACKSTAR_SHADER;
 const frag = [S.common, S.angular, S.fields, S.composite].join('\n');
-const perFrameSrc = S.perFrame.toString();
+const perFrameSrc = fs.readFileSync(path.join(root, 'shader.js'), 'utf8'); // perFrame() and its CPU helpers
 const appSrc = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 const BUILTINS = new Set(['u_res', 'u_screen', 'u_time', 'u_realTime', 'u_angular', 'u_fields0', 'u_fields1']);
 const frameNames = new Set(Object.keys(S.frameUniforms));
