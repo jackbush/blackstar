@@ -105,7 +105,7 @@ window.BLACKSTAR_PARAMS = [
       { key: 'grainSize', label: 'Grain size (px)', value: 0.5, min: 0.5, max: 6, step: 0.05, desc: 'Size of individual grains in canvas pixels.' },
       { key: 'grainSharpness', label: 'Grain sparsity', value: 1.4, min: 0.3, max: 4, step: 0.01, desc: 'Higher = fewer, brighter specks; lower = even haze.' },
       { key: 'grainClump', label: 'Grain clumping', value: 0.5, min: 0, max: 1, step: 0.01, desc: 'Uneven grain density, like real emulsion.' },
-      { key: 'dust', label: 'Dust', value: 0.1, min: 0, max: 1, step: 0.01, desc: 'Density of white dust specks per frame.' },
+      { key: 'dust', label: 'Dust', value: 0.03, min: 0, max: 1, step: 0.01, desc: 'Density of white dust specks per frame.' },
     ],
   },
 ];
