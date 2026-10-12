@@ -10,8 +10,8 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
-## Editing parameters
+## Debug mode
 
 Press `d` to show the controls, then edit any parameter. Copy the changes as a block back into Claude for easy mass updates.
 
-![The controls panel beside the canvas](docs/controls.jpg)
+![The controls panel beside the canvas](docs/controls.png)
