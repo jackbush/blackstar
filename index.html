@@ -4,6 +4,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Blackstar</title>
+  <!-- __VERSION__ is replaced with the commit hash by .github/workflows/pages.yml on deploy. -->
+  <meta name="build" content="__VERSION__">
+  <script>
+    (function () {
+      var build = document.querySelector('meta[name="build"]').content;
+      if (build.indexOf('__') === 0) return; // local dev: not stamped
+      function check() {
+        fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (j) {
+            if (!j || !j.version || j.version === build) return;
+            var key = 'blackstar:reloaded-for';
+            try { if (sessionStorage.getItem(key) === j.version) return; sessionStorage.setItem(key, j.version); } catch (_) {}
+            location.replace(location.pathname + '?v=' + j.version + location.hash);
+          })
+          .catch(function () {});
+      }
+      check();
+      window.addEventListener('pageshow', function (e) { if (e.persisted) check(); });
+      document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') check(); });
+    })();
+  </script>
   <style>
     :root {
       --ink: #f4f4f4;
@@ -125,8 +147,8 @@
     </div>
   </aside>
 
-  <script src="params.js"></script>
-  <script src="shader.js"></script>
-  <script src="app.js"></script>
+  <script src="params.js?v=__VERSION__"></script>
+  <script src="shader.js?v=__VERSION__"></script>
+  <script src="app.js?v=__VERSION__"></script>
 </body>
 </html>

@@ -1,0 +1,38 @@
+# Deploys the site to GitHub Pages on every push to main, stamping the commit hash into
+# index.html (script URLs + <meta name="build">) and version.json so browsers never mix
+# builds and open tabs can detect a newer deploy. Only the site files are published.
+name: Deploy to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build versioned site
+        run: |
+          v="${GITHUB_SHA::7}"
+          mkdir _site
+          cp *.html *.js _site/
+          sed -i "s/__VERSION__/$v/g" _site/index.html
+          printf '{"version":"%s"}\n' "$v" > _site/version.json
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+      - id: deployment
+        uses: actions/deploy-pages@v4

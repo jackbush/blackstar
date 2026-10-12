@@ -8,6 +8,7 @@ WebGL2 canvas piece: an undulating black orb with a burning halo on a wobbling y
 - `scripts/check.js`: params ↔ shader consistency check; run after every change
 - `scripts/bench.mjs`: real-GPU fps benchmark via headless Chrome (serve the folder on :8765 first)
 - Skills: `blackstar-state` (apply pasted state blobs), `blackstar-elements` (add/edit/remove elements)
+- Deploy: `.github/workflows/pages.yml` publishes root `*.html` + `*.js` to GitHub Pages on push to `main`, replacing `__VERSION__` in `index.html` with the commit hash and writing `version.json`. Open tabs compare against it and jump to the new build. New site files must live at the root (or extend the copy step); keep `?v=__VERSION__` on any new `<script>`/`<link>`.
 
 ## Optimisation todo
 
