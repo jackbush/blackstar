@@ -6,6 +6,7 @@
 //
 // --fixed       turn adaptive quality off, so the number is raw throughput at full resolution
 // --swiftshader CPU renderer: a stand-in for a very weak GPU (use with adaptive on)
+// --panel       keep the sidebar open in the --shot screenshot
 
 import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
@@ -67,7 +68,7 @@ const result = await evaluate(`new Promise((res) => {
 })`);
 console.log(JSON.stringify(result));
 if (shot) {
-  await evaluate(`document.getElementById('close').click()`);
+  if (!has('--panel')) await evaluate(`document.getElementById('cog').click()`);
   await sleep(400);
   const r = await send('Page.captureScreenshot', { format: 'png' });
   writeFileSync(shot, Buffer.from(r.result.data, 'base64'));

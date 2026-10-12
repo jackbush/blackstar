@@ -40,7 +40,7 @@ description: Add, edit, or remove visual elements and parameters in the Blacksta
    - `key` is camelCase, unique and descriptive. It becomes `u_<key>` and the key in copied state.
    - `type` is `'range'` (the default), `'color'` (`'#rrggbb'`) or `'bool'`.
    - The default must sit inside `[min, max]`. Pick ranges that are useful but not destructive, and pick `step` to suit the precision that matters.
-   - `label` stays short so it fits a 112px column. `desc` is required because it's the tooltip.
+   - `label` stays short (≤ 18 characters) so it fits the 124px label column. `desc` is required because it's the tooltip.
 2. Use `u_<key>` in the relevant pass in `shader.js`. If only `perFrame()` reads it, use `P.<key>` there and set `uniform: false`.
 3. Run `node scripts/check.js`.
 

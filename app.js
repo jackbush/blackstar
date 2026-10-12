@@ -11,7 +11,6 @@
   const SHADER = window.BLACKSTAR_SHADER;
   const STATE_TAG = 'blackstar/state@1';
   const STORAGE_KEY = 'blackstar:overrides';
-  const NOTES_KEY = 'blackstar:notes';
 
   // ------------------------------------------------------------ param model
   const params = [];
@@ -328,7 +327,7 @@
     if (fpsAccum >= 0.5) {
       if (fpsEl && panelOpen) {
         fpsEl.textContent = Math.round(fpsFrames / fpsAccum) + ' fps · ' + canvas.width + '×' + canvas.height +
-          (P_adaptive.value ? ' · ' + Math.round(dynScale * 100) + '%' : '');
+          (P_adaptive.value ? ' · res ' + Math.round(dynScale * 100) + '%' : '');
       }
       fpsAccum = 0;
       fpsFrames = 0;
@@ -355,8 +354,6 @@
   const cog = document.getElementById('cog');
   const panel = document.getElementById('panel');
   const controls = document.getElementById('controls');
-  const notes = document.getElementById('notes');
-  const includeAll = document.getElementById('include-all');
   const copyBtn = document.getElementById('copy');
   const resetBtn = document.getElementById('reset');
   const statusEl = document.getElementById('status');
@@ -434,28 +431,25 @@
   function changedCount() { let n = 0; for (const p of params) if (isChanged(p)) n++; return n; }
   function onEdited() {
     scheduleSave();
-    statusEl.textContent = changedCount() + ' changed from code defaults';
+    const n = changedCount();
+    statusEl.textContent = n === 0 ? 'No changes' : n + (n === 1 ? ' change' : ' changes');
+    resetBtn.hidden = n === 0;
   }
 
   function setPanel(open) {
     panelOpen = open;
     panel.classList.toggle('open', open);
     panel.setAttribute('aria-hidden', String(!open));
+    document.body.classList.toggle('panel-open', open); // canvas shrinks to the remaining area
     cog.setAttribute('aria-expanded', String(open));
   }
   cog.addEventListener('click', () => setPanel(!panelOpen));
-  document.getElementById('close').addEventListener('click', () => setPanel(false));
 
   // ---- copy state
   function buildState() {
     const changed = {};
     for (const p of params) if (isChanged(p)) changed[p.key] = { from: p.default, to: p.value };
-    const out = { blackstar: STATE_TAG, notes: notes.value.trim(), changed };
-    if (includeAll.checked) {
-      out.all = {};
-      for (const p of params) out.all[p.key] = p.value;
-    }
-    return JSON.stringify(out, null, 2);
+    return JSON.stringify({ blackstar: STATE_TAG, changed }, null, 2);
   }
   async function writeClipboard(text) {
     try {
@@ -473,14 +467,14 @@
       return ok;
     }
   }
+  let copyTimer = 0;
   copyBtn.addEventListener('click', async () => {
     const text = buildState();
     const ok = await writeClipboard(text);
-    const n = changedCount();
-    statusEl.textContent = ok
-      ? 'Copied — ' + n + ' change' + (n === 1 ? '' : 's') + (notes.value.trim() ? ' + notes' : '') + '. Paste it to Claude.'
-      : 'Clipboard blocked — state logged to the console.';
     if (!ok) console.log(text);
+    copyBtn.textContent = ok ? 'Copied' : 'Clipboard blocked — logged to console';
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => { copyBtn.textContent = 'Copy changes'; }, 1800);
   });
 
   resetBtn.addEventListener('click', () => {
@@ -489,8 +483,6 @@
     onEdited();
   });
 
-  try { notes.value = localStorage.getItem(NOTES_KEY) || ''; } catch (_) { /* ignore */ }
-  notes.addEventListener('input', () => { try { localStorage.setItem(NOTES_KEY, notes.value); } catch (_) { /* ignore */ } });
 
   // ---- keyboard
   window.addEventListener('keydown', (e) => {

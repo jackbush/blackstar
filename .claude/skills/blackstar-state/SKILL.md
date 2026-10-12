@@ -1,27 +1,25 @@
 ---
 name: blackstar-state
-description: Apply a pasted Blackstar state blob to the code. Use whenever the user pastes JSON containing "blackstar": "blackstar/state@1" (copied from the sidebar's "Copy state" button), or asks to bake/apply/save their tweaked sidebar values into the Blackstar animation's defaults.
+description: Apply a pasted Blackstar state blob to the code. Use whenever the user pastes JSON containing "blackstar": "blackstar/state@1" (copied from the sidebar's "Copy changes" button), or asks to bake/apply/save their tweaked sidebar values into the Blackstar animation's defaults.
 ---
 
 # Applying a Blackstar state blob
 
-The sidebar's **Copy state** button produces this:
+The sidebar's **Copy changes** button produces this:
 
 ```json
 {
   "blackstar": "blackstar/state@1",
-  "notes": "free text from the user",
   "changed": {
     "orbRadius": { "from": 0.19, "to": 0.24 },
     "haloOuter": { "from": "#d2260c", "to": "#aa1100" }
-  },
-  "all": { "...": "optional: every value, only present if the user ticked 'include every value'" }
+  }
 }
 ```
 
 - `changed` holds every param that differs from the code defaults at the moment of copying. `from` is the code default the user's page was running. `to` is what they want.
-- `notes` is the user's free-text intent. Treat it as instructions with the same weight as their chat message.
-- `all` is context only. Never write values from `all` into code unless they also appear in `changed` or the user asks for it.
+- The user's intent, if any, is in the chat message around the blob. (Older blobs may have a `notes` field; treat it the same way.)
+- Older blobs may have an `all` block (every value). It's context only. Never write values from it unless they also appear in `changed` or the user asks.
 
 All defaults live in `params.js` (`window.BLACKSTAR_PARAMS`, groups → params). Each param has a unique `key`. The blob's keys are those keys.
 
@@ -35,12 +33,12 @@ All defaults live in `params.js` (`window.BLACKSTAR_PARAMS`, groups → params).
    - **Key doesn't exist:** the param was renamed or removed. Check `git log -p -S'<key>' -- params.js` for a rename. If one is obvious, apply the value to the new key and say so; otherwise report the key as skipped.
    - **Formats:** colors are lowercase `#rrggbb`. Numbers keep the param's `step` precision, so never write `0.30000000000000004`. Bools are `true`/`false`.
 3. **Change nothing else in `params.js`.** Keep each param's position, label, desc and formatting, and edit only the `value:` field (plus `min`/`max` when widening).
-4. **Act on `notes`.** Phrases like "a bit hotter" or "slower" usually map to existing params, so adjust them and say which ones and by how much. If a note asks for a new visual element, behaviour, or a removal, follow the `blackstar-elements` skill. If a note is ambiguous, apply the numeric changes first and then ask about the note. Don't stall the whole update on it.
+4. **Act on the accompanying message (or `notes`).** Phrases like "a bit hotter" or "slower" usually map to existing params, so adjust them and say which ones and by how much. If it asks for a new visual element, behaviour, or a removal, follow the `blackstar-elements` skill. If it's ambiguous, apply the numeric changes first and then ask about it. Don't stall the whole update on it.
 5. **Verify:** run `node scripts/check.js`. It must report 0 errors.
 6. **Reply briefly** with:
    - a compact table of what changed: key · old default → new default
    - anything reconciled (moved defaults, widened ranges, skipped keys)
-   - what you did about the notes
+   - what you did about the accompanying message
 
 ## After applying
 
