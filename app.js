@@ -433,8 +433,19 @@
 
   function syncAll() { for (const r of rows) r.sync(); }
   function changedCount() { let n = 0; for (const p of params) if (isChanged(p)) n++; return n; }
+  // Mobile browser bars and overscroll take the page background / theme-color, not canvas pixels,
+  // so keep both on the orb's edge colour — the orb fills the screen's narrow edges.
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  function syncPageColour() {
+    const c = byKey.orbColor.value;
+    document.documentElement.style.backgroundColor = c;
+    document.body.style.backgroundColor = c;
+    if (themeMeta) themeMeta.content = c;
+  }
+
   function onEdited() {
     scheduleSave();
+    syncPageColour();
     const n = changedCount();
     statusEl.textContent = n === 0 ? 'No changes' : n + (n === 1 ? ' change' : ' changes');
     resetBtn.hidden = n === 0;

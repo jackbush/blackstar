@@ -3,6 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Browser bars can't show canvas pixels, so they take the orb's edge colour (kept in sync by app.js).
+       Added to the home screen, iOS runs it truly full-screen under a transparent status bar. -->
+  <meta name="theme-color" content="#1c0605">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Blackstar">
   <title>Blackstar</title>
   <!-- __VERSION__ is replaced with the commit hash by .github/workflows/pages.yml on deploy. -->
   <meta name="build" content="__VERSION__">
@@ -37,7 +44,7 @@
       --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; overflow: hidden; background: #f3a63c; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1c0605; }
     #stage {
       /* lvh = full screen height including the area behind mobile browser bars, so the bars show
          the animation through them instead of a flat page colour. */
