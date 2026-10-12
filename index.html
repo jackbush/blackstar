@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Blackstar</title>
   <style>
     :root {
@@ -17,7 +17,9 @@
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; overflow: hidden; background: #f3a63c; }
     #stage {
-      position: fixed; top: 0; bottom: 0; left: 0; width: 100%; height: 100%; display: block;
+      /* lvh = full screen height including the area behind mobile browser bars, so the bars show
+         the animation through them instead of a flat page colour. */
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; height: 100lvh; display: block;
       transition: left .28s cubic-bezier(.2, .7, .2, 1), width .28s cubic-bezier(.2, .7, .2, 1);
     }
     /* With the panel open, the animation fits the remaining area so its edges stay visible. */
@@ -31,7 +33,7 @@
     }
 
     #cog {
-      position: fixed; top: 14px; left: 14px; z-index: 3; width: 38px; height: 38px; padding: 8px;
+      position: fixed; top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); z-index: 3; width: 38px; height: 38px; padding: 8px;
       border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.3); color: var(--ink);
       cursor: pointer; opacity: 0.6; transition: opacity .2s, transform .5s, background .2s;
     }
@@ -48,7 +50,7 @@
     body[data-ui="open"] #panel { transform: none; }
     body[data-ui="off"] #cog, body[data-ui="off"] #panel { display: none; }
 
-    .head { display: flex; align-items: center; gap: 12px; padding: 14px 16px 10px 62px; min-height: 62px; border-bottom: 1px solid var(--line); }
+    .head { display: flex; align-items: center; gap: 12px; padding: 14px 16px 10px 62px; padding-top: max(14px, env(safe-area-inset-top)); min-height: 62px; border-bottom: 1px solid var(--line); }
     .head h1 { margin: 0; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; font-weight: 600; }
     #fps { color: var(--ink-dim); flex: 1; text-align: right; white-space: nowrap; }
 
@@ -89,7 +91,7 @@
     input[type=color]::-webkit-color-swatch { border: 0; }
     input[type=checkbox] { justify-self: start; accent-color: var(--accent); margin: 0; }
 
-    .state { padding: 12px 14px 14px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+    .state { padding: 12px 14px max(14px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); display: grid; gap: 8px; }
     .changes { color: var(--ink-dim); }
     #reset { background: none; border: 0; padding: 0; color: var(--ink); font: inherit; cursor: pointer; }
     #reset:hover { text-decoration: underline; }
