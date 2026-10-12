@@ -497,10 +497,23 @@
     copyTimer = setTimeout(() => { copyBtn.textContent = 'Copy changes'; }, 1800);
   });
 
+  // Reset to the newest defaults: if a newer build has been deployed since this tab
+  // loaded, its params.js may have different defaults, so jump to that build.
   resetBtn.addEventListener('click', () => {
     for (const p of params) setValue(p, p.default);
     syncAll();
     onEdited();
+    const build = document.querySelector('meta[name="build"]')?.content || '';
+    if (build.indexOf('__') === 0) return; // local dev: not stamped
+    fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (!j || !j.version || j.version === build) return;
+        clearTimeout(saveTimer);
+        try { localStorage.removeItem(STORAGE_KEY); } catch (_) { /* ignore */ }
+        location.replace(location.pathname + '?v=' + j.version + location.hash);
+      })
+      .catch(() => {});
   });
 
 
