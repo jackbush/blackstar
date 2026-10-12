@@ -12,11 +12,11 @@
 // swings in and out on its own sine wave (with amplitude jitter); perFrame() computes the
 // point radii on the CPU, now and at (now − halo lag), into f_ring.
 //
-// Anything identical for every pixel (orb centre, gradient direction, weave, flicker)
+// Anything identical for every pixel (orb centre, gradient direction, halo reach)
 // is computed once per frame on the CPU in perFrame() → f_* uniforms.
 //
 // Composite order: background → halo → orb → light leaks → highlight burn →
-// vignette → exposure & flicker → dust → grain.
+// vignette → exposure → dust → grain.
 //
 // Uniforms available in every pass:
 //   u_<key>     every param in params.js without `uniform: false` (auto-declared)
@@ -66,7 +66,6 @@
     frameUniforms: {
       f_px: 1,          // canvas px per CSS px (keeps grain/dust size stable when resolution changes)
       f_frame: 1,       // film frame index
-      f_weave: 2,
       f_bgDir: 2,
       f_orbCenter: 2,
       f_haloCenter: 2,
@@ -74,7 +73,6 @@
       f_ringCount: 1,   // number of ring points in use
       f_ring: [MAX_POINTS * 2], // point offsets: [0, N) now, [MAX_POINTS, MAX_POINTS + N) at t − lag
       f_haloReach: 1,
-      f_exposure: 1,    // exposure × flicker
     },
 
     // Called once per frame. P = params by key, f = preallocated Float32Arrays. Must not allocate.
@@ -83,10 +81,6 @@
       const frame = Math.floor(rt * P.filmFps.value);
       f.f_px[0] = px;
       f.f_frame[0] = frame;
-
-      const wv = P.weave.value; // screen-height units
-      f.f_weave[0] = (hash2(frame, 1) - 0.5) * wv + noise1(rt * 0.7 + seed) * wv * 0.6;
-      f.f_weave[1] = (hash2(frame, 3) - 0.5) * wv + noise1(rt * 0.6 + seed + 57) * wv * 0.6;
 
       // Gradient direction wanders irregularly (two incommensurate tracks) within ±range/2.
       const ws = P.bgWobbleSpeed.value;
@@ -113,8 +107,6 @@
 
       f.f_haloReach[0] = Math.max(P.haloReach.value * (1 + P.haloPulse.value * noise1(t * P.haloPulseSpeed.value + seed + 503)), 1e-3);
 
-      f.f_exposure[0] = P.exposure.value *
-        (1 + P.flicker.value * ((hash2(frame, 11) - 0.5) * 1.2 + 0.5 * noise1(rt * 2 + 601)));
     },
 
     vert: `#version 300 es
@@ -264,7 +256,7 @@ void main() {
   float px = f_px;
   float frame = f_frame;
 
-  vec2 q = (fc - 0.5 * u_res) / u_res.y + f_weave;
+  vec2 q = (fc - 0.5 * u_res) / u_res.y;
   vec2 fuv = q / vec2(aspect, 1.0) + 0.5;
   vec4 F0 = decode(textureLod(u_fields0, fuv, 0.0)); // warp, mottle, leak, rays
   vec4 F1 = decode(textureLod(u_fields1, fuv, 0.0)); // swirl, -, -, -
@@ -314,11 +306,11 @@ void main() {
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
   col = mix(col, u_burnColor, smoothstep(0.95, 1.4, lum) * u_burnHighlights);
 
-  // --- vignette
-  col = mix(col, u_vignetteColor, smoothstep(0.35, 1.55, edgeDist) * u_vignette);
+  // --- vignette: multiply toward the tint, so corners scorch (keep saturation) rather than grey out
+  col *= mix(vec3(1.0), u_vignetteColor, smoothstep(0.35, 1.55, edgeDist) * u_vignette);
 
-  // --- exposure + flicker
-  col *= f_exposure;
+  // --- exposure
+  col *= u_exposure;
 
   // --- dust: sparse white specks, one candidate per cell per frame
   float cell = 48.0 * px;

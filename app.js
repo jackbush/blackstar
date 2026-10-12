@@ -375,6 +375,9 @@
     const id = 'p-' + p.key;
     label.htmlFor = id;
     label.title = (p.desc ? p.desc + '\n' : '') + 'key: ' + p.key + ' · default: ' + p.default + '\nDouble-click to reset.';
+    // Labels stay linked to their control for accessibility, but a click on one must not activate it
+    // (that opened the colour picker / toggled checkboxes); double-click is reserved for reset.
+    label.addEventListener('click', (e) => e.preventDefault());
     label.addEventListener('dblclick', () => { setValue(p, p.default); sync(); onEdited(); });
     wrap.appendChild(label);
 
